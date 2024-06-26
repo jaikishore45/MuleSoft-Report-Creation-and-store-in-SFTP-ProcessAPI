@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    
+	<flow name="report-papi-main">
+        <http:listener config-ref="report-papi-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpCode]" reasonPhrase="#[vars.httpStatus]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="report-papi-config" />
+        <error-handler ref="global-error-implementationError_Handler">
+
+        </error-handler>
+
+    </flow>
+            <flow name="report-papi-console">
+        <http:listener config-ref="report-papi-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="report-papi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+	</error-handler>
+	</flow>
+    <flow name="get:\getFileName:report-papi-config">
+		<try doc:name="Try" doc:id="d9f7e3d7-b890-4ca5-a11e-949814d678a5" >
+			<flow-ref doc:name="Flow Reference to get-File-imp" doc:id="71398206-5cf9-40b7-bee4-671e3894e192" name="getFile-ImplementationSub_Flow" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a6dbdffc-8166-4548-83d6-f880ee5864c5" type="ANY" >
+					<ee:transform doc:name="Transform Message" doc:id="4b9dc2e4-f836-4a54-bd20-71fc4c3ce872" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 500,
+	"Message" : "Internal Server Error"
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpCode" ><![CDATA[500]]></ee:set-variable>
+							<ee:set-variable variableName="httpStatus" ><![CDATA["Internal Server Error"]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+    </flow>
+    <flow name="get:\getReport:report-papi-config">
+		<try doc:name="Try" doc:id="468a327a-b39c-420f-bf88-5f5c61625cac" >
+			<flow-ref doc:name="Flow Reference to get-Report-Imp" doc:id="2f439b86-6f20-4e78-82d9-f8c32c9ab110" name="getReports-ImplementationSub_Flow" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0e5edaa1-4d17-4f04-91d6-76f0a550d80c" type="ANY" >
+					<ee:transform doc:name="Transform Message" doc:id="f9002f95-f6e8-421d-944e-dbd28ec175ce" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 500,
+	"Message" : "Internal Server Error"
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpCode" ><![CDATA[500]]></ee:set-variable>
+							<ee:set-variable variableName="httpStatus" ><![CDATA["Internal Server Error"]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+    </flow>
+    <flow name="put:\automatedRec:report-papi-config">
+        <ee:transform doc:name="Payload from Eapi" doc:id="710e4e14-2d0c-4a01-b2d2-4b77d5d5addb">
+            <ee:message />
+            <ee:variables>
+                <ee:set-variable variableName="newPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+				<ee:set-variable variableName="path" ><![CDATA["/" ++ attributes.headers.directory ++ "/" ++ attributes.headers.fileName]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+		<try doc:name="Try" doc:id="f8b3b2f9-3cc4-4618-9cce-973576045904" >
+			<flow-ref doc:name="Flow Reference to automatedRec" doc:id="ea51fb24-6e22-45b6-98a1-5efa469d3f62" name="automatedRec-_ImplementationSub_Flow" targetValue="#[vars.newPayload]"/>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8ffcbe72-aa34-4481-b174-e9a58e0015ab" type="ANY" >
+					<ee:transform doc:name="Transform Message" doc:id="14225fb6-1530-42bf-b37c-2e72f366de46" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 500,
+	"Message" : "Internal Server Error"
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpCode" ><![CDATA[500]]></ee:set-variable>
+							<ee:set-variable variableName="httpStatus" ><![CDATA["Internal Server Error"]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+    </flow>
+    <flow name="put:\addRecords:report-papi-config">
+		<try doc:name="Try" doc:id="430ff9ee-0f55-426d-a576-e5d1dff0dafd" >
+			<ee:transform doc:name="Transform Message" doc:id="ecbfc2c2-7cb7-45a0-9c98-72457357f86f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="Flow Reference to addRec" doc:id="2b2f3cdc-6940-4755-9847-fee999335c72" name="addRecords-_ImplementationSub_Flow" />
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7f4d3a4f-5322-4ff1-ab7f-660aeecfcc18" type="ANY">
+					<ee:transform doc:name="Transform Message" doc:id="2eee72c2-fa74-44c8-96d2-2494ccf46f25" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 500,
+	"Message" : "Internal Server Error"
+}]]></ee:set-payload>
+						</ee:message>
+						<ee:variables >
+							<ee:set-variable variableName="httpCode" ><![CDATA[500]]></ee:set-variable>
+							<ee:set-variable variableName="httpStatus" ><![CDATA["Internal Server Error"]]></ee:set-variable>
+						</ee:variables>
+					</ee:transform>
+				</on-error-propagate>
+			</error-handler>
+		</try>
+    </flow>
+</mule>

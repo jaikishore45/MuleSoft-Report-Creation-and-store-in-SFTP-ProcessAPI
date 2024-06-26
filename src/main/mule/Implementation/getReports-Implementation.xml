@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="getReports-ImplementationSub_Flow" doc:id="b89bb628-89da-4f04-881a-2696c738d675" >
+	 <ee:transform doc:name="filename, directory">
+            <ee:message>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="directory" ><![CDATA[attributes.headers.directory]]></ee:set-variable>
+				<ee:set-variable variableName="fileName" ><![CDATA[attributes.headers.fileName]]></ee:set-variable>
+			</ee:variables>
+        </ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="35aace70-3145-4512-8ec7-f84711851124" message="SFTP Read -&gt; Started"/>
+		<sftp:read doc:name="Read from SFTP" doc:id="c2d5f3b5-0999-4658-98b8-a0c77ff50af2" config-ref="SFTP_Config" path='#["/" ++ vars.directory ++ "/" ++ vars.fileName]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="3f600852-6a99-4040-b81c-13ebf15cc492" message="SFTP Read -&gt; Ended"/>
+		<ee:transform doc:name="Res Payload" doc:id="e1df4b09-a887-4d1b-b7d2-9b214db9a2fb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

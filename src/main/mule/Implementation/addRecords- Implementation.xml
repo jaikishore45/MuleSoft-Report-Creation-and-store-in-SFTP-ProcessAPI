@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="addRecords-_ImplementationSub_Flow" doc:id="2022350d-eddb-4939-8029-55c66309176d" >
+	<ee:transform doc:name="Directory, filename" doc:id="2c446124-0f44-43f8-aca1-1dbdf9f32c0e">
+            <ee:message>
+            </ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="fileName" ><![CDATA[%dw 2.0
+output application/json
+---
+attributes.headers.fileName]]></ee:set-variable>
+				<ee:set-variable variableName="directory" ><![CDATA[
+%dw 2.0
+output application/json
+---
+attributes.headers.directory]]></ee:set-variable>
+				<ee:set-variable variableName="inputData" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			
+</ee:variables>
+        </ee:transform>
+		<ee:transform doc:name="path variable" doc:id="fb8ec2c3-5f1a-4456-bcdf-a4b21b0cbe89" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="path" ><![CDATA["/" ++ vars.directory ++ "/" ++ vars.fileName]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ba59cf1f-a96f-4296-a1cf-c0013c87aa65" message="SFTP Read -&gt; Started"/>
+		<sftp:read doc:name="Read file from SFTP" doc:id="636097f3-6ad4-4e63-ad39-4987e617cad2" config-ref="SFTP_Config" path="#[vars.path]" target="sftpData"/>
+		<logger level="INFO" doc:name="Logger" doc:id="61635ff9-51f0-4ba7-989e-48fe291ace2f" message="SFTP Read -&gt; Ended"/>
+		<ee:transform doc:name="readSftp variable" doc:id="c1109dbd-75aa-47b8-ab74-9b4626d6b26e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="readSftp" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.sftpData]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="Filtering updated record" doc:id="ecc6a5e7-b7b3-475d-a183-5f052675fbef" >
+			<ee:message >
+			
+</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="filterData" ><![CDATA[%dw 2.0
+output application/csv
+
+var fileData = vars.sftpData
+var inputData = vars.inputData
+fun replaceAndAddRecords(fileData, inputData) = do {
+    var updatedFileData = fileData map (fileRecord) -> do {
+        var matchedInputRecord = inputData filter (inputRecord) -> inputRecord.EMPLOYEE_ID == fileRecord.EMPLOYEE_ID
+        ---
+        if (sizeOf(matchedInputRecord) > 0 and matchedInputRecord[0] != fileRecord) 
+            matchedInputRecord[0] 
+        else 
+            fileRecord
+    }
+    
+    var newRecords = inputData filter (inputRecord) -> 
+        isEmpty((fileData filter (fileRecord) -> fileRecord.EMPLOYEE_ID == inputRecord.EMPLOYEE_ID))
+    
+    ---
+    updatedFileData ++ newRecords
+}
+
+---
+replaceAndAddRecords(fileData, inputData)
+]]></ee:set-variable>
+				<ee:set-variable variableName="checkUpdated" ><![CDATA[%dw 2.0
+output application/json
+var acc = vars.inputData
+/**
+ * Filter out objects from acc that do not have a match in payload
+ */
+var mismatchedObjects = flatten([acc]) filter ((accItem) -> 
+    not (
+          flatten([vars.readSftp]) map ((payloadItem) -> 
+            accItem.EMPLOYEE_ID == payloadItem.EMPLOYEE_ID and
+            accItem.FIRST_NAME == payloadItem.FIRST_NAME and
+            accItem.LAST_NAME == payloadItem.LAST_NAME and
+            accItem.EMAIL == payloadItem.EMAIL and
+            accItem.PHONE_NUMBER == payloadItem.PHONE_NUMBER and
+            accItem.HIRE_DATE == payloadItem.HIRE_DATE and
+            accItem.JOB_ID == payloadItem.JOB_ID and
+            accItem.SALARY == payloadItem.SALARY and
+            accItem.COMMISSION_PCT == payloadItem.COMMISSION_PCT and
+            accItem.MANAGER_ID == payloadItem.MANAGER_ID and
+            accItem.DEPARTMENT_ID == payloadItem.DEPARTMENT_ID
+        ) contains true
+    )
+)
+---
+flatten(mismatchedObjects)]]></ee:set-variable>
+			</ee:variables>
+		
+</ee:transform>
+		<choice doc:name="Choice" doc:id="d2ac8b09-7b60-460b-876c-1ca57515f6d2" >
+			<when expression="#[isEmpty(vars.checkUpdated)]">
+				<ee:transform doc:name="No update Response" doc:id="7fad0636-eb85-4511-87ba-34a295816fe6" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 200,
+	"Message": "Data is already Present"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="67e11cd5-ffc2-436d-aad8-de164de59661" message="SFTP Write -&gt; Started"/>
+				<sftp:write doc:name="Write updated Data into SFTP" doc:id="fff82e2e-77ee-40be-8224-135a55acce28" config-ref="SFTP_Config" path="#[vars.path]" createParentDirectories="false">
+			<reconnect />
+					<sftp:content><![CDATA[#[vars.filterData]]]></sftp:content>
+		</sftp:write>
+				<logger level="INFO" doc:name="Logger" doc:id="c13d812c-110d-4044-b3c5-32f5c48f94c6" message="SFTP Write -&gt; Ended"/>
+				<ee:transform doc:name="Success Response" doc:id="ff5393d3-4a64-4044-852a-335e78887312" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"code": 201,
+	"Message":"Data Updated Successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	
+	
+</sub-flow>
+</mule>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd">
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="a90fc0fa-229c-4336-beab-6f9f58f6afa4" />
+	<sub-flow name="automatedRec-_ImplementationSub_Flow" doc:id="ac1f3f02-4cbf-429e-9751-50fef5ce02b3" >
+		<os:retrieve doc:name="Retrieve old data from store" doc:id="4754dd5f-ee72-4888-b3e8-1d40c1ca3349" key="ReportPayload" target="Report" objectStore="Object_store">
+			<os:default-value ><![CDATA[#[""]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Reportold variable" doc:id="87780a93-325c-45fb-a515-16bc25468d44">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+				<ee:set-variable variableName="Reportold" ><![CDATA[%dw 2.0
+output application/json
+---
+vars.Report]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+		<choice doc:name="Choice" doc:id="916ec963-55ec-4eb2-ad5e-f6c2314258ad" >
+			<when expression='#[isEmpty(vars.Report)]'>
+				<sftp:read doc:name="Read from SFTP" doc:id="7fbb52e3-a4e8-4fe8-8f62-12fa5134f283" config-ref="SFTP_Config" path="#[vars.path]" target="ReadForObj"/>
+				<os:store doc:name="Store the data into the object" doc:id="ecf78986-8b9e-4bb9-bf8c-219dcae3bb45" key="ReportPayload" objectStore="Object_store">
+					<os:value ><![CDATA[#[%dw 2.0
+output application/json
+---
+vars.ReadForObj]]]></os:value>
+				</os:store>
+				<ee:transform doc:name="Response msg" doc:id="8e50f987-85fc-423b-9ffb-d324429b1980" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message": "Please Send it again"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Filtering payload changes made" doc:id="fa437c4f-4690-422a-909f-db8e752280c8" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="filterPayload" ><![CDATA[%dw 2.0
+output application/json
+var acc = vars.newPayload
+/**
+ * Filter out objects from acc that do not have a match in payload
+ */
+var mismatchedObjects = flatten([acc]) filter ((accItem) -> 
+    not (
+          flatten([vars.Report]) map ((payloadItem) -> 
+            accItem.EMPLOYEE_ID == payloadItem.EMPLOYEE_ID and
+            accItem.FIRST_NAME == payloadItem.FIRST_NAME and
+            accItem.LAST_NAME == payloadItem.LAST_NAME and
+            accItem.EMAIL == payloadItem.EMAIL and
+            accItem.PHONE_NUMBER == payloadItem.PHONE_NUMBER and
+            accItem.HIRE_DATE == payloadItem.HIRE_DATE and
+            accItem.JOB_ID == payloadItem.JOB_ID and
+            accItem.SALARY == payloadItem.SALARY and
+            accItem.COMMISSION_PCT == payloadItem.COMMISSION_PCT and
+            accItem.MANAGER_ID == payloadItem.MANAGER_ID and
+            accItem.DEPARTMENT_ID == payloadItem.DEPARTMENT_ID
+        ) contains true
+    )
+)
+---
+flatten(mismatchedObjects)]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="15f9374b-b410-40d1-be26-9a64288cceae" >
+					<when expression="#[isEmpty(vars.filterPayload)]">
+						<logger level="INFO" doc:name="Logger" doc:id="422cf495-098b-4e64-a0b0-efc892cebc61" message="No Change in Data"/>
+						<ee:transform doc:name="Display Response" doc:id="a1f87d8e-7b59-464b-98dd-1dcbec378658" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 200,
+	"Message": "No Updated Records"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Bulk logger-&gt; 1" doc:id="1437e391-0134-49b5-bc59-0ce63b91c820" message="Bulk Insert -&gt; Started"/>
+						<db:bulk-update doc:name="Bulk update only filtered payload" doc:id="fd84df06-7456-4412-bd45-049f02209b78" config-ref="Database_Config">
+							<db:bulk-input-parameters ><![CDATA[#[vars.filterPayload]]]></db:bulk-input-parameters>
+							<db:sql ><![CDATA[UPDATE daily_report
+SET 
+    FIRST_NAME = :FIRST_NAME,
+    LAST_NAME = :LAST_NAME,
+    EMAIL = :EMAIL,
+    PHONE_NUMBER = :PHONE_NUMBER,
+    HIRE_DATE = :HIRE_DATE,
+    JOB_ID = :JOB_ID,
+    SALARY = :SALARY,
+    COMMISSION_PCT = :COMMISSION_PCT,
+    MANAGER_ID = :MANAGER_ID,
+    DEPARTMENT_ID = :DEPARTMENT_ID
+WHERE
+    EMPLOYEE_ID = :EMPLOYEE_ID;]]></db:sql>
+						</db:bulk-update>
+						<logger level="INFO" doc:name="Bulk Iogger 2" doc:id="bbf74d4d-3e9f-4dc1-9dc0-44c4f4b6ccaa" message="Bulk Insert -&gt; Ended"/>
+						<os:store doc:name="Store updated Data" doc:id="64df8d0f-05e6-4344-9637-24b45e44d67c" key="ReportPayload">
+							<os:value ><![CDATA[#[vars.newPayload]]]></os:value>
+						</os:store>
+						<ee:transform doc:name="Display Response" doc:id="7e0b1a1b-e4a1-493b-a1a3-ae94799ad152" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code": 201,
+	"Message": "Data Updated Successfully"
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

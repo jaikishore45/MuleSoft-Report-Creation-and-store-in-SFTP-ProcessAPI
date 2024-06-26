@@ -1,0 +1,29 @@
+[
+{
+    "EMPLOYEE_ID": "300",
+    "FIRST_NAME": "Jaikishore",
+    "LAST_NAME": "OConnell",
+    "EMAIL": "DOCONNEL",
+    "PHONE_NUMBER": "650.507.9833",
+    "HIRE_DATE": "21-JUN-07",
+    "JOB_ID": "SH_CLERK",
+    "SALARY": "2600",
+    "COMMISSION_PCT": "-",
+    "MANAGER_ID": "124",
+    "DEPARTMENT_ID": "50"
+  },
+  {
+    "EMPLOYEE_ID": "301",
+    "FIRST_NAME": "Jai",
+    "LAST_NAME": "OConnell",
+    "EMAIL": "DOCONNEL",
+    "PHONE_NUMBER": "650.507.9833",
+    "HIRE_DATE": "21-JUN-07",
+    "JOB_ID": "SH_CLERK",
+    "SALARY": "2600",
+    "COMMISSION_PCT": "-",
+    "MANAGER_ID": "124",
+    "DEPARTMENT_ID": "50"
+  }
+  
+  ]

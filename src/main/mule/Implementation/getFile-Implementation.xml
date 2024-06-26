@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	<sub-flow name="getFile-ImplementationSub_Flow" doc:id="61927256-46e4-4ce3-8108-cec5e89aef5e" >
+		<ee:transform doc:name="filename, directory" doc:id="530b31f9-2a03-4ba1-ba6a-aeb02211ac7e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="directory" ><![CDATA[attributes.headers.directory]]></ee:set-variable>
+				<ee:set-variable variableName="fileName" ><![CDATA[attributes.headers.fileName]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ee:transform doc:name="path variable" doc:id="0f8c6d58-4bce-4e00-b1f8-7d4bb8f3d86e" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="filePath" ><![CDATA[vars.directory ++ "/" ++ vars.fileName]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="97b7aab4-e2a5-48cb-b0f6-172996a8b49f" message="SFTP list -&gt; Started"/>
+		<sftp:list doc:name="Gets the list of file in the Directory" doc:id="82413bfa-ec35-47a9-a98b-b8267828c4c3" config-ref="SFTP_Config" directoryPath='#["/" ++ vars.directory]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="ae044e7a-dc38-443f-9a42-6f10178be832" message="SFTP list -&gt; Ended"/>
+		<ee:transform doc:name="Res payload" doc:id="07a58edf-44dd-4b01-9bb1-017309f2ddbd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Code":200,
+	"FileName" : [payload.attributes.name]
+}
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

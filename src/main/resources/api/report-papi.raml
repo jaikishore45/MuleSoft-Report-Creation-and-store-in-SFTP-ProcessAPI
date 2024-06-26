@@ -1,0 +1,51 @@
+#%RAML 1.0
+title: Report-papi
+protocols: [HTTP,HTTPS]
+mediaType: application/json
+description: This report-papi will performs major operations and sent to the report-eapi. 
+
+uses: 
+  customLib : Library/library.raml
+
+/getFileName:
+  is: [customLib.Headers-papi]
+  get:
+    description: Get the filename present in the SFTP and send it to the reports-eapi method [/fileList]
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include Examples/getFileName-Res.json
+
+/getReport:
+  is : [customLib.Headers-papi]
+  get: 
+   description:  Get the data in the SFTP and send it to the reports-eapi method [/report]
+   responses:
+    200:
+      body:
+        application/json:
+          example: !include Examples/getReport-Res.json
+
+/addRecords:
+  is : [customLib.Headers-papi]
+  put:
+    description: Post the data in the dataBase without any validation
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include Examples/addRecord-res.json
+
+/automatedRec:
+  is: [customLib.Headers-papi]
+  put: 
+    description: Post the data to the databse if any changes are made in the csv.
+    responses:
+      201:
+        body:
+          application/json:
+            example: !include Examples/automatedRec-Res.json
+        
+
+      

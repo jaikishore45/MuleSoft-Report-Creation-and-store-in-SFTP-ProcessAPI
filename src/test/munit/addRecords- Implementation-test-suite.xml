@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<munit:config name="addRecords-Implementation-test-suite.xml" />
+	<!-- [STUDIO:"addRecords-_Implementation-test-suite-addRecords-_ImplementationSub_FlowTest"]<munit:test name="addRecords-_Implementation-test-suite-addRecords-_ImplementationSub_FlowTest" doc:id="1afeddd9-d0ef-46ab-bbfc-b5a41312fc4e" description="Test" expectedErrorType="ANY">
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to addRecords-_ImplementationSub_Flow" doc:id="93b5babb-b74f-41bc-879f-4ad077087c76" name="addRecords-_ImplementationSub_Flow"/>
+		</munit:execution>
+		<munit:validation >
+			<ee:transform doc:name="Transform Message" doc:id="0d50de93-8989-4de2-b829-5cc4a5e74212" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+	"Status": "Test okay for Choice Condition"
+}&#93;&#93;></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</munit:validation>
+	</munit:test> [STUDIO] -->
+	<!-- [STUDIO:"addRecords-Implementation-test-suite-addRecords-_ImplementationSub_FlowTest"]<munit:test name="addRecords-Implementation-test-suite-addRecords-_ImplementationSub_FlowTest" doc:id="2fb650b3-5176-4282-9eb0-681094ede796" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="bff15996-c263-457d-8105-8f07f604c6b2" processor="sftp:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="636097f3-6ad4-4e63-ad39-4987e617cad2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:variables >
+						<munit-tools:variable key="sftpData" value='readUrl("classpath:sampleReadData.json") ' />
+						<munit-tools:variable key="path" value="/Data/dailyReport.csv" />
+						<munit-tools:variable key="readSftp" value='readUrl("classpath:sampleReadData.json") ' />
+						<munit-tools:variable key="inputData" value='readUrl("classpath:sampleInputData.json") ' />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy" doc:id="02b245c3-a8ab-4c6f-9292-847ec24db3a0" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c1109dbd-75aa-47b8-ab74-9b4626d6b26e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="752f3412-f45e-4f23-b893-58c771e36908" expression="#[payload&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+					<munit-tools:assert-that doc:name="Assert that" doc:id="67d7ff0a-9ab4-49b8-9c5c-d04320389591" expression="#[vars.sftpData&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="2004fcf6-32b3-4038-b733-2c705558ae30" expression="#[payload&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:spy doc:name="Spy" doc:id="b04cfee6-714f-479a-a8c0-f9fb5c9ab473" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ecc6a5e7-b7b3-475d-a183-5f052675fbef" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="0295cece-f0e4-4774-890b-f5f0a703ae50" is="#[MunitTools::notNullValue()&#93;" expression="#[payload&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="4ad37378-3bf3-4e79-9172-d0f882d5c6ca" is="#[MunitTools::notNullValue()&#93;" expression="#[payload&#93;"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="958ecc50-6fd2-4452-b80f-a22858c28550" processor="sftp:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fff82e2e-77ee-40be-8224-135a55acce28" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='readUrl("classpath:sampleInputData.json")' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy" doc:id="3c0f7c21-2273-4644-8087-eb12a9e16f64" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ff5393d3-4a64-4044-852a-335e78887312" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="095d1a65-6fa5-43ee-859b-6f1d35ee6132" is="#[MunitTools::notNullValue()&#93;" expression="#[payload&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-equals doc:name="Assert equals" doc:id="ef50088c-e685-4d7c-bb50-b79a6ff7f159" actual="#[payload&#93;" expected='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;	"code": 201,&#10;	"Message":"Data Updated Successfully"&#10;}&#93;'/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="b84f9c36-d2bd-4b06-bd82-694c5ee5a1c1">
+				<munit:payload value='#[[&#10;{&#10;    "EMPLOYEE_ID": "300",&#10;    "FIRST_NAME": "Jaikishore",&#10;    "LAST_NAME": "OConnell",&#10;    "EMAIL": "DOCONNEL",&#10;    "PHONE_NUMBER": "650.507.9833",&#10;    "HIRE_DATE": "21-JUN-07",&#10;    "JOB_ID": "SH_CLERK",&#10;    "SALARY": "2600",&#10;    "COMMISSION_PCT": "-",&#10;    "MANAGER_ID": "124",&#10;    "DEPARTMENT_ID": "50"&#10;  }&#10;  &#93;&#93;' mediaType="application/json" />
+				<munit:attributes value='#[{&#10;	"headers":[&#10;		"fileName":"dailyReport.csv",&#10;		"directory":"Data"&#10;	&#93;&#10;}&#93;' mediaType="application/json" />
+				<munit:variables >
+					<munit:variable key="path" value="/Data/dailyReport.csv" />
+				</munit:variables>
+			</munit:set-event>
+			<flow-ref doc:name="Flow-ref to addRecords-_ImplementationSub_Flow" doc:id="fcb11de6-efa7-4976-ae82-dbd35e2b295c" name="addRecords-_ImplementationSub_Flow"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="a1a7ca7c-6ae2-49a5-ba7f-6d8e46e4baf0" processor="sftp:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="636097f3-6ad4-4e63-ad39-4987e617cad2" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test> [STUDIO] -->
+	
+	
+	<!-- [STUDIO:"addRecords-SkipRecord-_ImplementationSub_FlowTest"]<munit:test name="addRecords-SkipRecord-_ImplementationSub_FlowTest" doc:id="48fec98f-6fb5-4e0e-842b-acffd13453dc" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="9d795d9f-c710-4ea4-b3a5-90ab93701e1a" processor="sftp:read">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="636097f3-6ad4-4e63-ad39-4987e617cad2" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="/Data/dailyReport.csv" attributeName="path" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return>
+					<munit-tools:variables>
+						<munit-tools:variable key="sftpData" value="[&#93;" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy" doc:id="7b9cc374-a927-4804-91ef-f092e1309134" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c1109dbd-75aa-47b8-ab74-9b4626d6b26e" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="afb2a33f-f04e-4945-9acd-8ab92bbbde07" expression="#[payload&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+					<munit-tools:assert-that doc:name="Assert that" doc:id="9669cf94-48de-4e32-b2c2-ecc9c7e8da29" expression="#[vars.sftpData&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="d7776eba-4c9f-4819-ba1c-70e862255761" expression="#[vars.readSftp&#93;" is="#[MunitTools::notNullValue()&#93;"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:spy doc:name="Spy" doc:id="613ede05-0394-4f07-9e5d-a96cb693c1b7" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ecc6a5e7-b7b3-475d-a183-5f052675fbef" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="e8d46282-c50e-442f-b776-c7fda0672656" is="#[MunitTools::notNullValue()&#93;" expression="#[vars.inputData&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="6695813c-b9ea-40a3-acce-03c680c64cc3" is="#[MunitTools::nullValue()&#93;" expression="vars.checkedData"/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="473f0654-8eda-4636-8308-ece42b98256c" processor="sftp:write">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="fff82e2e-77ee-40be-8224-135a55acce28" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy" doc:id="5ae0a6b4-9833-4e36-8ea1-f1a05657c956" processor="ee:transform">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="7fad0636-eb85-4511-87ba-34a295816fe6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<munit-tools:assert-that doc:name="Assert that" doc:id="ef6a2136-e2d9-49d8-8275-02f86fcb7f9f" is="#[MunitTools::notNullValue()&#93;" expression="#[payload&#93;"/>
+				</munit-tools:before-call>
+				<munit-tools:after-call >
+					<munit-tools:assert-equals doc:name="Assert equals" doc:id="9a733510-18ff-4330-9e5e-b2e9962ebd33" actual="#[payload&#93;" expected='#[%dw 2.0&#10;output application/json&#10;&#45;&#45;-&#10;{&#10;	"Code": 200,&#10;	"Message": "Data is already Present"&#10;}&#93;'/>
+				</munit-tools:after-call>
+			</munit-tools:spy>
+		
+</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to addRecords-_ImplementationSub_Flow" doc:id="b64e6859-6420-47a1-a30e-3404827f6374" name="addRecords-_ImplementationSub_Flow"/>
+		</munit:execution>
+		<munit:validation>
+			<logger level="INFO" doc:name="Logger" doc:id="68630ad8-7c17-42f9-91d7-17c2253df4b2" message="Okay"/>
+
+		</munit:validation>
+	
+</munit:test> [STUDIO] -->
+
+
+</mule>
